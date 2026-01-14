@@ -15,31 +15,31 @@ export class GeminiKernelService {
 
     try {
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3-pro-preview', // Using pro for better reasoning in ML tasks
-        contents: `You are the KNI Enterprise ML Kernel. Your job is to simulate a high-performance Python 3.10 environment.
+        model: 'gemini-3-flash-preview',
+        contents: `You are a Python 3.10 Interactive Kernel.
         
-        SESSION CONTEXT (Variables and state from previous cells):
+        SESSION HISTORY:
         ${context}
         
-        CURRENT COMMAND:
+        EXECUTE THIS CODE:
         ${code}
         
         RULES:
-        1. Return ONLY what would appear in a standard Jupyter Notebook output.
-        2. Format DataFrames (pandas) as rich ASCII tables or HTML-like structures.
-        3. For ML models (scikit-learn/pytorch/tensorflow), show progress bars if fitting, or detailed metrics (Accuracy, F1, Loss) if evaluating.
-        4. If a plot (matplotlib/seaborn) is requested, provide a detailed textual 'Visualization Summary' followed by an ASCII representation if possible.
-        5. If the code has a syntax error, return a realistic Traceback.
-        6. NO conversational filler. NO "Here is your output". Just the raw result.`,
+        1. Act as a real Python interpreter.
+        2. Maintain state from SESSION HISTORY.
+        3. Output ONLY the result (stdout, stderr, or the value of the last expression).
+        4. If there's an error, provide a standard Python Traceback.
+        5. DO NOT provide any conversational text, greetings, or explanations.
+        6. If the code produces a visualization, describe it concisely in text.`,
         config: {
-          temperature: 0.1,
-          systemInstruction: "Strict Python Kernel Emulator. Context-aware, precise, and professional."
+          temperature: 0,
+          systemInstruction: "You are a silent Python kernel. You only output execution results."
         }
       });
 
-      return response.text || "None";
+      return response.text || "";
     } catch (error) {
-      return `Traceback (most recent call last):\n  File "<stdin>", line 1, in <module>\nRuntimeError: ${error instanceof Error ? error.message : "KNI Cluster Interruption"}`;
+      return `Traceback (most recent call last):\n  File "<stdin>", line 1, in <module>\nRuntimeError: ${error instanceof Error ? error.message : "Kernel communication failure"}`;
     }
   }
 }

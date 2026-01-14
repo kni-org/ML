@@ -21,6 +21,7 @@ const INITIAL_NOTEBOOK: NotebookState = {
 
 const App: React.FC = () => {
   const [notebook, setNotebook] = useState<NotebookState>(INITIAL_NOTEBOOK);
+  const [isExecutingAll, setIsExecutingAll] = useState(false);
 
   const addCell = (type: CellType, afterId?: string) => {
     const newCell: Cell = {
@@ -47,6 +48,13 @@ const App: React.FC = () => {
     setNotebook(prev => ({
       ...prev,
       cells: prev.cells.filter(c => c.id !== id)
+    }));
+  };
+
+  const clearOutputs = () => {
+    setNotebook(prev => ({
+      ...prev,
+      cells: prev.cells.map(c => ({ ...c, output: undefined, executionCount: undefined }))
     }));
   };
 
@@ -83,9 +91,19 @@ const App: React.FC = () => {
     }));
   };
 
+  const runAll = async () => {
+    setIsExecutingAll(true);
+    for (const cell of notebook.cells) {
+      if (cell.type === CellType.CODE) {
+        await executeCell(cell.id);
+      }
+    }
+    setIsExecutingAll(false);
+  };
+
   return (
-    <div className="min-h-screen bg-white text-black font-sans">
-      <main className="max-w-4xl mx-auto py-12 px-6">
+    <div className="min-h-screen bg-white text-black font-sans selection:bg-blue-100">
+      <main className="max-w-4xl mx-auto py-16 px-6">
         <Notebook 
           cells={notebook.cells} 
           onUpdateCell={updateCell}
@@ -94,19 +112,38 @@ const App: React.FC = () => {
           onAddCell={addCell}
         />
 
-        <div className="mt-12 flex items-center justify-center gap-4">
-          <button 
-            onClick={() => addCell(CellType.CODE)}
-            className="px-6 py-2 border-2 border-green-500 rounded text-black font-bold hover:bg-slate-50 transition-colors"
-          >
-            + CODE
-          </button>
-          <button 
-            onClick={() => addCell(CellType.MARKDOWN)}
-            className="px-6 py-2 border-2 border-green-500 rounded text-black font-bold hover:bg-slate-50 transition-colors"
-          >
-            + TEXT
-          </button>
+        {/* Global Controls */}
+        <div className="mt-16 flex flex-col items-center gap-8">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => addCell(CellType.CODE)}
+              className="px-8 py-2.5 border-2 border-green-500 rounded text-black font-bold text-sm uppercase tracking-wider hover:bg-slate-50 active:scale-95 transition-all"
+            >
+              + Code Cell
+            </button>
+            <button 
+              onClick={() => addCell(CellType.MARKDOWN)}
+              className="px-8 py-2.5 border-2 border-green-500 rounded text-black font-bold text-sm uppercase tracking-wider hover:bg-slate-50 active:scale-95 transition-all"
+            >
+              + Text Cell
+            </button>
+          </div>
+          
+          <div className="flex items-center gap-6 border-t border-slate-100 pt-8 w-full justify-center">
+            <button 
+              onClick={runAll}
+              disabled={isExecutingAll}
+              className="text-black font-bold text-xs uppercase tracking-widest hover:underline disabled:opacity-50"
+            >
+              Run All Cells
+            </button>
+            <button 
+              onClick={clearOutputs}
+              className="text-black font-bold text-xs uppercase tracking-widest hover:underline"
+            >
+              Clear All Outputs
+            </button>
+          </div>
         </div>
       </main>
     </div>

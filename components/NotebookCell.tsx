@@ -28,37 +28,51 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cell, onUpdate, onDe
     }
   };
 
+  const lineCount = cell.content.split('\n').length || 1;
+  const lineNumbers = Array.from({ length: Math.max(lineCount, 1) }, (_, i) => i + 1);
+
   return (
     <div 
-      className={`relative w-full border-2 border-green-500 rounded-lg mb-6 bg-white overflow-hidden ${isFocused ? 'shadow-lg' : ''}`}
+      className={`relative w-full border-2 transition-all duration-200 rounded-lg mb-6 bg-white flex flex-col ${
+        isFocused ? 'border-green-600 shadow-sm' : 'border-green-500'
+      }`}
     >
-      <div className="flex flex-col">
-        {/* Cell Toolbar */}
-        <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-green-100">
-           <div className="flex items-center gap-3">
-             {isCode && (
-               <button 
-                onClick={onExecute}
-                disabled={cell.isExecuting}
-                className="text-black font-bold text-sm px-3 py-1 border border-black rounded hover:bg-slate-50 disabled:opacity-50"
-               >
-                {cell.isExecuting ? 'Running...' : 'Run'}
-               </button>
-             )}
-             <span className="text-xs text-slate-400 font-mono">
-               {isCode ? (cell.executionCount ? `[${cell.executionCount}]` : '[ ]') : 'Text'}
-             </span>
-           </div>
-           <button 
-            onClick={onDelete}
-            className="text-black font-bold text-xs px-2 py-1 hover:bg-red-50 hover:text-red-600 rounded transition-colors"
-           >
-            Delete
-           </button>
+      {/* Header Info */}
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-green-100 bg-white">
+        <div className="flex items-center gap-4">
+          {isCode && (
+            <button 
+              onClick={onExecute}
+              disabled={cell.isExecuting}
+              className="text-black font-black text-[11px] uppercase tracking-tighter hover:underline disabled:opacity-50"
+            >
+              {cell.isExecuting ? 'Running' : 'Run Cell'}
+            </button>
+          )}
+          <span className="text-[10px] font-mono text-slate-400">
+            {isCode ? `In [${cell.executionCount || ' '}]` : 'Markdown'}
+          </span>
         </div>
+        <button 
+          onClick={onDelete}
+          className="text-black font-black text-[11px] uppercase tracking-tighter hover:text-red-600"
+        >
+          Remove
+        </button>
+      </div>
+
+      <div className="flex items-start">
+        {/* Line Number Gutter */}
+        {isCode && (
+          <div className="w-10 pt-4 flex flex-col items-center select-none border-r border-green-50 bg-slate-50/20">
+            {lineNumbers.map(n => (
+              <span key={n} className="text-[11px] font-mono text-slate-300 leading-relaxed h-[1.625rem]">{n}</span>
+            ))}
+          </div>
+        )}
 
         {/* Input Area */}
-        <div className="p-4">
+        <div className="flex-1 p-4 pt-4">
           <textarea
             ref={textareaRef}
             value={cell.content}
@@ -70,22 +84,23 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cell, onUpdate, onDe
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
-            placeholder={isCode ? "Enter code..." : "Enter text..."}
+            placeholder={isCode ? "Enter Python code..." : "Enter text here..."}
             className={`w-full resize-none outline-none border-none p-0 font-mono text-[14px] leading-relaxed bg-white ${
-              isCode ? 'text-blue-600' : 'text-black'
+              isCode ? 'text-[#0000FF]' : 'text-black font-sans'
             }`}
           />
         </div>
-
-        {/* Output Section */}
-        {isCode && cell.output && (
-          <div className="border-t border-green-100 bg-white p-4">
-            <pre className="font-mono text-[13px] text-black whitespace-pre-wrap">
-              {cell.output}
-            </pre>
-          </div>
-        )}
       </div>
+
+      {/* Output Section */}
+      {isCode && cell.output && (
+        <div className="border-t border-green-100 bg-white p-5 pt-4">
+          <div className="text-[10px] font-mono text-slate-300 mb-2">Out [{cell.executionCount}]</div>
+          <pre className="font-mono text-[13.5px] text-black whitespace-pre-wrap leading-relaxed">
+            {cell.output}
+          </pre>
+        </div>
+      )}
     </div>
   );
 };
