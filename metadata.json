@@ -1,5 +1,5 @@
 {
-  "name": "LEARN ML",
-  "description": "A streamlined, high-performance ML practice environment for the KNI Organization, featuring a notebook interface and Gemini-powered smart kernel.",
+  "name": "K1",
+  "description": "High-performance ML notebook environment for the KNI Organization.",
   "requestFramePermissions": []
 }

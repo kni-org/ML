@@ -1,42 +1,45 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const API_KEY = process.env.API_KEY;
-
 export class GeminiKernelService {
   private ai: GoogleGenAI;
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: API_KEY || '' });
+    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   }
 
   async executeCode(code: string, context: string = "") {
+    if (!process.env.API_KEY) {
+        return "Error: API Key is missing. Ensure the environment is correctly configured.";
+    }
+
     try {
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `You are an IPython Interactive Kernel. You are executing code for an ML researcher at KNI Organization.
+        model: 'gemini-3-pro-preview', // Using pro for better reasoning in ML tasks
+        contents: `You are the KNI Enterprise ML Kernel. Your job is to simulate a high-performance Python 3.10 environment.
         
-        RULES:
-        1. PERSISTENCE: Use the 'Context' provided to remember previous variable assignments.
-        2. FORMATTING: If the output is a pandas DataFrame, format it as a fixed-width ASCII table. 
-        3. REALISM: If the code is just an expression at the end (e.g. 'df'), show its representation.
-        4. PURITY: Output ONLY what would appear in a terminal/notebook output. 
-        5. LIBRARIES: Assume standard ML libraries (numpy, pandas, sklearn, torch, matplotlib) are available. If matplotlib is used, describe the resulting plot clearly.
-        
-        CONTEXT:
+        SESSION CONTEXT (Variables and state from previous cells):
         ${context}
         
-        CODE TO RUN:
-        ${code}`,
+        CURRENT COMMAND:
+        ${code}
+        
+        RULES:
+        1. Return ONLY what would appear in a standard Jupyter Notebook output.
+        2. Format DataFrames (pandas) as rich ASCII tables or HTML-like structures.
+        3. For ML models (scikit-learn/pytorch/tensorflow), show progress bars if fitting, or detailed metrics (Accuracy, F1, Loss) if evaluating.
+        4. If a plot (matplotlib/seaborn) is requested, provide a detailed textual 'Visualization Summary' followed by an ASCII representation if possible.
+        5. If the code has a syntax error, return a realistic Traceback.
+        6. NO conversational filler. NO "Here is your output". Just the raw result.`,
         config: {
-          temperature: 0, 
-          systemInstruction: "You are the KNI Kernel. You act exactly like a professional Python 3 notebook environment. You never talk to the user, you only execute code and return results."
+          temperature: 0.1,
+          systemInstruction: "Strict Python Kernel Emulator. Context-aware, precise, and professional."
         }
       });
 
-      return response.text?.trim() || "";
+      return response.text || "None";
     } catch (error) {
-      return `Traceback (most recent call last):\n  File "<ipython-input-1>", line 1, in <module>\nKernelError: ${error instanceof Error ? error.message : "Lost connection to KNI cluster"}`;
+      return `Traceback (most recent call last):\n  File "<stdin>", line 1, in <module>\nRuntimeError: ${error instanceof Error ? error.message : "KNI Cluster Interruption"}`;
     }
   }
 }

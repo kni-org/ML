@@ -11,6 +11,7 @@ export interface Cell {
   output?: string;
   isExecuting?: boolean;
   executionCount?: number;
+  executionTime?: number; // In seconds
 }
 
 export interface NotebookState {
